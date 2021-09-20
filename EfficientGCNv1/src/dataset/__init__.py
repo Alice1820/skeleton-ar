@@ -31,6 +31,7 @@ def create(dataset, root_folder, transform, num_frame, inputs, **kwargs):
         'num_frame': num_frame,
         'connect_joint': graph.connect_joint,
     })
+    print (data_args)
     feeders = {
         'train': data_args['feeder']('train', **kwargs),
         'eval' : data_args['feeder']('eval', **kwargs),

@@ -49,6 +49,7 @@ def init_parser():
     parser.add_argument('--debug', '-db', default=False, action='store_true', help='Debug')
     parser.add_argument('--resume', '-r', default=False, action='store_true', help='Resume from checkpoint')
     parser.add_argument('--evaluate', '-e', default=False, action='store_true', help='Evaluate')
+    parser.add_argument('--demo', '-demo', default=False, action='store_true', help='Demo')
     parser.add_argument('--extract', '-ex', default=False, action='store_true', help='Extract')
     parser.add_argument('--visualize', '-v', default=False, action='store_true', help='Visualization')
     parser.add_argument('--generate_data', '-gd', default=False, action='store_true', help='Generate skeleton data')

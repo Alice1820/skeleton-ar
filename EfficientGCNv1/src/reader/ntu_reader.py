@@ -113,10 +113,12 @@ class NTU_Reader():
             if (phase == 'train' and not is_training_sample) or (phase == 'eval' and is_training_sample):
                 continue
 
+            # print (file_path) # /mnt/hdd/NTU_RGBD_120/nturgbd_skeleton/nturgbd_skeletons_s018_to_s032/S018C001P041R002A067.skeleton
             # Read one sample
             data = np.zeros((self.max_channel, self.max_frame, self.max_joint, self.select_person_num), dtype=np.float32)
             skeleton, frame_num = self.read_file(file_path)
 
+            print (skeleton.shape)
             # Select person by max energy
             energy = np.array([self.get_nonzero_std(skeleton[m]) for m in range(self.max_person)])
             index = energy.argsort()[::-1][:self.select_person_num]

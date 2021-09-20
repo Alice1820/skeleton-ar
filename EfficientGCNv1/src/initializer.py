@@ -17,18 +17,18 @@ class Initializer():
         self.args = args
         self.init_save_dir()
         
-        if args.demo:
-            logging.info('')
-            logging.info('Starting preparing ...')
-            self.init_environment()
-            self.init_device()
-            # self.init_dataloader()
-            self.init_model()
-            # self.init_optimizer()
-            # self.init_lr_scheduler()
-            # self.init_loss_func()
-            logging.info('Successful!')
-            logging.info('')
+        # if args.demo:
+        logging.info('')
+        logging.info('Starting preparing ...')
+        self.init_environment()
+        self.init_device()
+        self.init_dataloader()
+        self.init_model()
+        self.init_optimizer()
+        self.init_lr_scheduler()
+        self.init_loss_func()
+        logging.info('Successful!')
+        logging.info('')
 
     def init_save_dir(self):
         self.save_dir = U.set_logging(self.args)
@@ -70,7 +70,7 @@ class Initializer():
                 meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 memused = meminfo.used / 1024 / 1024
                 logging.info('GPU-{} used: {}MB'.format(i, memused))
-                if memused > 1000:
+                if memused > 5000:
                     pynvml.nvmlShutdown()
                     logging.info('')
                     logging.error('GPU-{} is occupied!'.format(i))
@@ -85,28 +85,28 @@ class Initializer():
             self.output_device = None
             self.device =  torch.device('cpu')
 
-    # def init_dataloader(self):
-    #     dataset_name = self.args.dataset.split('-')[0]
-    #     dataset_args = self.args.dataset_args[dataset_name]
-    #     dataset_args['debug'] = self.args.debug
-    #     self.train_batch_size = dataset_args['train_batch_size']
-    #     self.eval_batch_size = dataset_args['eval_batch_size']
-    #     self.feeders, self.data_shape, self.num_class, self.A, self.parts = dataset.create(
-    #         self.args.dataset, **dataset_args
-    #     )
-    #     self.train_loader = DataLoader(self.feeders['train'],
-    #         batch_size=self.train_batch_size, num_workers=4*len(self.args.gpus),
-    #         pin_memory=True, shuffle=True, drop_last=True
-    #     )
-    #     self.eval_loader = DataLoader(self.feeders['eval'],
-    #         batch_size=self.eval_batch_size, num_workers=4*len(self.args.gpus),
-    #         pin_memory=True, shuffle=False, drop_last=False
-    #     )
-    #     self.location_loader = self.feeders['location'] if dataset_name == 'ntu' else None
-    #     logging.info('Dataset: {}'.format(self.args.dataset))
-    #     logging.info('Batch size: train-{}, eval-{}'.format(self.train_batch_size, self.eval_batch_size))
-    #     logging.info('Data shape (branch, channel, frame, joint, person): {}'.format(self.data_shape))
-    #     logging.info('Number of action classes: {}'.format(self.num_class))
+    def init_dataloader(self):
+        dataset_name = self.args.dataset.split('-')[0]
+        dataset_args = self.args.dataset_args[dataset_name]
+        dataset_args['debug'] = self.args.debug
+        self.train_batch_size = dataset_args['train_batch_size']
+        self.eval_batch_size = dataset_args['eval_batch_size']
+        self.feeders, self.data_shape, self.num_class, self.A, self.parts = dataset.create(
+            self.args.dataset, **dataset_args
+        )
+        self.train_loader = DataLoader(self.feeders['train'],
+            batch_size=self.train_batch_size, num_workers=4*len(self.args.gpus),
+            pin_memory=True, shuffle=True, drop_last=True
+        )
+        self.eval_loader = DataLoader(self.feeders['eval'],
+            batch_size=self.eval_batch_size, num_workers=4*len(self.args.gpus),
+            pin_memory=True, shuffle=False, drop_last=False
+        )
+        self.location_loader = self.feeders['location'] if dataset_name == 'ntu' else None
+        logging.info('Dataset: {}'.format(self.args.dataset))
+        logging.info('Batch size: train-{}, eval-{}'.format(self.train_batch_size, self.eval_batch_size))
+        logging.info('Data shape (branch, channel, frame, joint, person): {}'.format(self.data_shape))
+        logging.info('Number of action classes: {}'.format(self.num_class))
 
     def init_model(self):
         # datashape
@@ -140,26 +140,26 @@ class Initializer():
             logging.warning('Warning: Do NOT exist this pretrained model: {}!'.format(pretrained_model))
             logging.info('Create model randomly.')
 
-    # def init_optimizer(self):
-    #     try:
-    #         optimizer = U.import_class('torch.optim.{}'.format(self.args.optimizer))
-    #     except:
-    #         logging.warning('Warning: Do NOT exist this optimizer: {}!'.format(self.args.optimizer))
-    #         logging.info('Try to use SGD optimizer.')
-    #         self.args.optimizer = 'SGD'
-    #         optimizer = U.import_class('torch.optim.SGD')
-    #     optimizer_args = self.args.optimizer_args[self.args.optimizer]
-    #     self.optimizer = optimizer(self.model.parameters(), **optimizer_args)
-    #     logging.info('Optimizer: {} {}'.format(self.args.optimizer, optimizer_args))
+    def init_optimizer(self):
+        try:
+            optimizer = U.import_class('torch.optim.{}'.format(self.args.optimizer))
+        except:
+            logging.warning('Warning: Do NOT exist this optimizer: {}!'.format(self.args.optimizer))
+            logging.info('Try to use SGD optimizer.')
+            self.args.optimizer = 'SGD'
+            optimizer = U.import_class('torch.optim.SGD')
+        optimizer_args = self.args.optimizer_args[self.args.optimizer]
+        self.optimizer = optimizer(self.model.parameters(), **optimizer_args)
+        logging.info('Optimizer: {} {}'.format(self.args.optimizer, optimizer_args))
 
-    # def init_lr_scheduler(self):
-    #     scheduler_args = self.args.scheduler_args[self.args.lr_scheduler]
-    #     self.max_epoch = scheduler_args['max_epoch']
-    #     lr_scheduler = scheduler.create(self.args.lr_scheduler, len(self.train_loader), **scheduler_args)
-    #     self.eval_interval, lr_lambda = lr_scheduler.get_lambda()
-    #     self.scheduler = LambdaLR(self.optimizer, lr_lambda=lr_lambda)
-    #     logging.info('LR_Scheduler: {} {}'.format(self.args.lr_scheduler, scheduler_args))
+    def init_lr_scheduler(self):
+        scheduler_args = self.args.scheduler_args[self.args.lr_scheduler]
+        self.max_epoch = scheduler_args['max_epoch']
+        lr_scheduler = scheduler.create(self.args.lr_scheduler, len(self.train_loader), **scheduler_args)
+        self.eval_interval, lr_lambda = lr_scheduler.get_lambda()
+        self.scheduler = LambdaLR(self.optimizer, lr_lambda=lr_lambda)
+        logging.info('LR_Scheduler: {} {}'.format(self.args.lr_scheduler, scheduler_args))
 
-    # def init_loss_func(self):
-    #     self.loss_func = torch.nn.CrossEntropyLoss().to(self.device)
-    #     logging.info('Loss function: {}'.format(self.loss_func.__class__.__name__))
+    def init_loss_func(self):
+        self.loss_func = torch.nn.CrossEntropyLoss().to(self.device)
+        logging.info('Loss function: {}'.format(self.loss_func.__class__.__name__))

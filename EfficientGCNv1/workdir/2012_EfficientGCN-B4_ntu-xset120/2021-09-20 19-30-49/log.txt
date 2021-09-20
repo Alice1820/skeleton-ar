@@ -1,0 +1,4 @@
+[ 2021-09-20 19:30:49,197 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-20 19-30-49
+[ 2021-09-20 19:30:49,197 ] 
+[ 2021-09-20 19:30:49,197 ] Starting preparing ...
+[ 2021-09-20 19:30:49,199 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120

@@ -1,0 +1,1 @@
+[ 2021-09-20 17:01:36,986 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-20 17-01-36

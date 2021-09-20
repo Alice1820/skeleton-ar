@@ -10,6 +10,16 @@ import cv2
 class k4aBodyTracking():
 
 	def __init__(self):
+		self.max_channel = 3
+        self.max_frame = 300
+        self.max_joint = 25
+        self.max_person = 4
+        self.select_person_num = 2
+        self.dataset = args.dataset
+        self.progress_bar = not args.no_progress_bar
+        self.transform = transform
+		self.winLen = 32
+
 		# Path to the module
 		# TODO: Modify with the path containing the k4a.dll from the Azure Kinect SDK
 		# modulePath = 'C:\\Program Files\\Azure Kinect SDK v1.4.1\\sdk\\windows-desktop\\amd64\\release\\bin\\k4a.dll' 
@@ -36,8 +46,25 @@ class k4aBodyTracking():
 
 		# Initialize the body tracker
 		self.pyK4A.bodyTracker_start(bodyTrackingModulePath)
-	
+
 	def next(self):
+		return None
+
+	def next_clip(self):
+        skeleton = np.zeros((self.max_person, self.max_frame, self.max_joint, self.max_channel), dtype=np.float32)
+        with open(file_path, 'r') as fr:
+            frame_num = int(fr.readline())
+            for frame in range(frame_num):
+                person_num = int(fr.readline())
+                for person in range(person_num):
+                    person_info = fr.readline().strip().split()
+                    joint_num = int(fr.readline())
+                    for joint in range(joint_num):
+                        joint_info = fr.readline().strip().split()
+                        skeleton[person,frame,joint,:] = np.array(joint_info[:self.max_channel], dtype=np.float32)
+        return skeleton[:,:frame_num,:,:], frame_num
+
+	def next_frame(self):
 		k = 0
 		# while True:
 		# Get capture
