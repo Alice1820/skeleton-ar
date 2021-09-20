@@ -1,0 +1,8 @@
+[ 2021-09-17 17:09:16,542 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-17 17-09-16
+[ 2021-09-17 17:09:16,542 ] 
+[ 2021-09-17 17:09:16,542 ] Starting preparing ...
+[ 2021-09-17 17:09:16,544 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-17 17:09:16,544 ] Using CPU!
+[ 2021-09-17 17:09:16,545 ] 
+[ 2021-09-17 17:09:16,545 ] Error: Wrong in loading data files: /data/yifan.song/dataset/NTU_skeleton/npy_dataset/original/ntu-xset120/train_data.npy or /data/yifan.song/dataset/NTU_skeleton/npy_dataset/original/ntu-xset120/train_label.pkl!
+[ 2021-09-17 17:09:16,545 ] Please generate data first!
