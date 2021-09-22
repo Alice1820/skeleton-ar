@@ -1,6 +1,10 @@
 import logging, torch, numpy as np
+import torch.nn.functional as F
 from tqdm import tqdm
 from time import time
+import threading
+
+import cv2
 
 from . import utils as U
 from .initializer import Initializer
@@ -16,6 +20,7 @@ class Processor(Initializer):
         for num, (x, y, _) in enumerate(train_iter):
             self.optimizer.zero_grad()
 
+            print (x.shape)
             # Using GPU
             x = x.float().to(self.device)
             y = y.long().to(self.device)
@@ -73,7 +78,6 @@ class Processor(Initializer):
                 print (x.size())
                 # Calculating Output
                 out, _ = self.model(x)
-
                 # Getting Loss
                 loss = self.loss_func(out, y)
                 eval_loss.append(loss.item())
@@ -116,12 +120,49 @@ class Processor(Initializer):
     def demo(self):
         self.model.eval()
         start_eval_time = time()
-        with torch.no_grad():
-            # TODO: data input from Azure Kinect in a buffer
-            x = x.float().to(self.device)
-            # Calculating Output
-            out, _ = self.model(x)
-            print (out)
+        # feed clip into model
+        threading.Thread(target=self.demo_batch, daemon=True).start()
+        k = 0
+        while True:
+            if self.bodyTracker.imageNow is not None:
+                # Overlay body segmentation on depth image
+                cv2.imshow('Segmented Depth Image', self.bodyTracker.imageNow)
+                k = cv2.waitKey(1)
+            if k == 27:
+                break
+            elif k == ord('q'):
+                cv2.imwrite('outputImage.jpg', self.bodyTracker.imageNow)
+
+    def demo_batch(self):
+        interest = torch.tensor([[23], [26]])
+        y_onehot = torch.zeros([2, 120])
+        y_onehot.scatter_(1, interest, 1)
+        y_onehot = torch.sum(y_onehot, dim=0, keepdim=True) # [1, 120]
+        y_onehot = y_onehot.cuda()
+        # print (y_onehot)
+        # idx2label = {24: 'hand waving', 27: 'jumping up'}
+        idx2label = {0: 'hand waving', 1: 'jumping up'}
+        out_i = torch.zeros([1, 2])
+        while True:
+            with torch.no_grad():
+                x = self.bodyTracker.next_clip()
+                # print (x.shape)
+                x = torch.Tensor(x).float()
+                x = x.unsqueeze(0).to(self.device)
+                # Calculating Output
+                out, _ = self.model(x)
+                out = out * y_onehot
+                # mapping
+                out_i[:, 0] = out[:, 23]
+                out_i[:, 1] = out[:, 26]
+                out_i = out_i.data.cpu()
+                out_i = F.softmax(out_i, -1)
+                # out = F.softmax(out, -1)
+                # print (out)
+                prob = torch.max(out_i[0])
+                pred = torch.argmax(out_i[0])
+                # print out result
+                print ('{:.2f}%'.format(prob.numpy() * 1e2), '{:03d}'.format(pred.numpy() + 1), idx2label[int(pred.numpy() + 1)])
 
     def start(self):
         start_time = time()

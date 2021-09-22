@@ -1,0 +1,16 @@
+[ 2021-09-22 15:36:27,743 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-22 15-36-27
+[ 2021-09-22 15:36:27,743 ] 
+[ 2021-09-22 15:36:27,743 ] Starting preparing ...
+[ 2021-09-22 15:36:27,745 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-22 15:36:27,767 ] GPU-0 used: 1167.0MB
+[ 2021-09-22 15:36:29,853 ] Model: EfficientGCN-B4 {'stem_channel': 64, 'block_args': [[48, 1, 0.5], [24, 1, 0.5], [64, 2, 1], [128, 2, 1]], 'fusion_stage': 2, 'act_type': 'swish', 'att_type': 'stja', 'layer_type': 'Sep', 'drop_prob': 0.25, 'kernel_size': [5, 2], 'scale_args': [1.2, 1.35], 'expand_ratio': 2, 'reduct_ratio': 4, 'bias': True, 'edge': True}
+[ 2021-09-22 15:36:30,645 ] Model profile: 15.87G FLOPs and 2.05M Parameters
+[ 2021-09-22 15:36:32,514 ] Pretrained model: checkpoints//2012_EfficientGCN-B4_ntu-xset120.pth.tar
+[ 2021-09-22 15:36:32,515 ] Successful!
+[ 2021-09-22 15:36:32,515 ] 
+[ 2021-09-22 15:36:32,515 ] Loading demo model ...
+[ 2021-09-22 15:36:32,518 ] Warning: Do NOT exists any model in workdir!
+[ 2021-09-22 15:36:32,518 ] Evaluating initial or pretrained model.
+[ 2021-09-22 15:36:32,518 ] Successful!
+[ 2021-09-22 15:36:32,518 ] 
+[ 2021-09-22 15:36:32,518 ] Starting testing ...

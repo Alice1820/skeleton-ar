@@ -32,6 +32,18 @@ def main():
         p = Processor(args)
         p.start()
 
+# def main():
+
+#     k = 0
+#     while True:
+#         if self.imageNow is not None:
+#             # Overlay body segmentation on depth image
+#             cv2.imshow('Segmented Depth Image', self.imageNow)
+#             k = cv2.waitKey(1)
+#         if k == 27:
+#             break
+#         elif k == ord('q'):
+#             cv2.imwrite('outputImage.jpg', self.imageNow)
 
 def init_parser():
     parser = argparse.ArgumentParser(description='Method for Skeleton-based Action Recognition')

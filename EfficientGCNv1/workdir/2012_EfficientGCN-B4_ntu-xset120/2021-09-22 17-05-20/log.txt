@@ -1,0 +1,15 @@
+[ 2021-09-22 17:05:20,072 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-22 17-05-20
+[ 2021-09-22 17:05:20,072 ] 
+[ 2021-09-22 17:05:20,072 ] Starting preparing ...
+[ 2021-09-22 17:05:20,073 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-22 17:05:20,097 ] GPU-0 used: 1205.75MB
+[ 2021-09-22 17:05:22,231 ] Model: EfficientGCN-B4 {'stem_channel': 64, 'block_args': [[48, 1, 0.5], [24, 1, 0.5], [64, 2, 1], [128, 2, 1]], 'fusion_stage': 2, 'act_type': 'swish', 'att_type': 'stja', 'layer_type': 'Sep', 'drop_prob': 0.25, 'kernel_size': [5, 2], 'scale_args': [1.2, 1.35], 'expand_ratio': 2, 'reduct_ratio': 4, 'bias': True, 'edge': True}
+[ 2021-09-22 17:05:23,051 ] Model profile: 15.87G FLOPs and 2.05M Parameters
+[ 2021-09-22 17:05:24,814 ] Successful!
+[ 2021-09-22 17:05:24,814 ] 
+[ 2021-09-22 17:05:24,814 ] Loading demo model ...
+[ 2021-09-22 17:05:24,819 ] Warning: Do NOT exists any model in workdir!
+[ 2021-09-22 17:05:24,819 ] Evaluating initial or pretrained model.
+[ 2021-09-22 17:05:24,819 ] Successful!
+[ 2021-09-22 17:05:24,819 ] 
+[ 2021-09-22 17:05:24,820 ] Starting testing ...

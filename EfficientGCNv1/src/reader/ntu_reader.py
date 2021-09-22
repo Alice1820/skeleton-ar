@@ -88,6 +88,7 @@ class NTU_Reader():
             if filename in self.ignored_samples:
                 continue
 
+            # print (filename)
             # Get sample information
             file_path = os.path.join(folder, filename)
             setup_loc = filename.find('S')
@@ -118,7 +119,8 @@ class NTU_Reader():
             data = np.zeros((self.max_channel, self.max_frame, self.max_joint, self.select_person_num), dtype=np.float32)
             skeleton, frame_num = self.read_file(file_path)
 
-            print (skeleton.shape)
+            # print (skeleton.shape)
+            # print (skeleton[0, 0, 0, :])
             # Select person by max energy
             energy = np.array([self.get_nonzero_std(skeleton[m]) for m in range(self.max_person)])
             index = energy.argsort()[::-1][:self.select_person_num]

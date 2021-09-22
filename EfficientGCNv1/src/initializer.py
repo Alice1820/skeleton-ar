@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, '..')
+
 import os, yaml, thop, warnings, logging, pynvml, torch, numpy as np
 from copy import deepcopy
 from tensorboardX import SummaryWriter
@@ -10,25 +13,34 @@ from . import model
 from . import scheduler
 
 from .dataset.graphs import Graph
-
+from .k4aBodyTracker import k4aBodyTracker
 
 class Initializer():
     def __init__(self, args):
         self.args = args
         self.init_save_dir()
         
-        # if args.demo:
-        logging.info('')
-        logging.info('Starting preparing ...')
-        self.init_environment()
-        self.init_device()
-        self.init_dataloader()
-        self.init_model()
-        self.init_optimizer()
-        self.init_lr_scheduler()
-        self.init_loss_func()
-        logging.info('Successful!')
-        logging.info('')
+        if not args.demo:
+            logging.info('')
+            logging.info('Starting preparing ...')
+            self.init_environment()
+            self.init_device()
+            self.init_dataloader()
+            self.init_model()
+            self.init_optimizer()
+            self.init_lr_scheduler()
+            self.init_loss_func()
+            logging.info('Successful!')
+            logging.info('')
+        else:
+            logging.info('')
+            logging.info('Starting preparing ...')
+            self.init_environment()
+            self.init_device()
+            self.init_tracker()
+            self.init_model()
+            logging.info('Successful!')
+            logging.info('')
 
     def init_save_dir(self):
         self.save_dir = U.set_logging(self.args)
@@ -163,3 +175,6 @@ class Initializer():
     def init_loss_func(self):
         self.loss_func = torch.nn.CrossEntropyLoss().to(self.device)
         logging.info('Loss function: {}'.format(self.loss_func.__class__.__name__))
+
+    def init_tracker(self):
+        self.bodyTracker = k4aBodyTracker()

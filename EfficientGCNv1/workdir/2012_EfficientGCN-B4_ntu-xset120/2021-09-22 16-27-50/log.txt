@@ -1,0 +1,5 @@
+[ 2021-09-22 16:27:50,650 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-22 16-27-50
+[ 2021-09-22 16:27:50,650 ] 
+[ 2021-09-22 16:27:50,650 ] Starting preparing ...
+[ 2021-09-22 16:27:50,652 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-22 16:27:50,676 ] GPU-0 used: 1188.125MB

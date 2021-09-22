@@ -1,0 +1,8 @@
+[ 2021-09-22 15:49:55,149 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-22 15-49-55
+[ 2021-09-22 15:49:55,149 ] 
+[ 2021-09-22 15:49:55,149 ] Starting preparing ...
+[ 2021-09-22 15:49:55,150 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-22 15:49:55,173 ] GPU-0 used: 1134.375MB
+[ 2021-09-22 15:49:55,175 ] 
+[ 2021-09-22 15:49:55,175 ] Error: Wrong in loading data files: /mnt/hdd/NTU_skeleton/npy_dataset/original/ntu-xset120/train_data.npy or /mnt/hdd/NTU_skeleton/npy_dataset/original/ntu-xset120/train_label.pkl!
+[ 2021-09-22 15:49:55,176 ] Please generate data first!
