@@ -3,6 +3,8 @@ import sys
 # sys.path.insert(1, './pyKinectAzure/')
 sys.path.insert(1, './src/pyKinectAzure/')
 
+import datetime
+
 import numpy as np
 import queue
 import threading
@@ -13,19 +15,26 @@ from .pyKinectAzure.pyKinectAzure import pyKinectAzure
 from .pyKinectAzure.kinectBodyTracker import kinectBodyTracker, _k4abt
 import cv2
 
+import torch
+import torchvision.transforms as transforms
+
+
 class k4aBodyTracker():
 
 	def __init__(self):
 		self.max_channel = 3
-		self.max_frame = 300
+		self.winLen = 32
+		self.vid_len = 8
+		self.max_frame = self.winLen
 		self.max_joint = 25
-		self.max_person = 4
+		self.max_person = 2
 		self.channels = 3
 		self.select_person_num = 2
+		self.W = 310
+		self.H = 256
 		# self.dataset = args.dataset
 		# self.progress_bar = not args.no_progress_bar
 		# self.transform = transform
-		self.winLen = 96
 
 		# Path to the module
 		# TODO: Modify with the path containing the k4a.dll from the Azure Kinect SDK
@@ -46,6 +55,7 @@ class k4aBodyTracker():
 		device_config = self.pyK4A.config
 		device_config.color_resolution = _k4a.K4A_COLOR_RESOLUTION_OFF
 		device_config.depth_mode = _k4a.K4A_DEPTH_MODE_NFOV_UNBINNED
+		# device_config.depth_mode = _k4a.K4A_DEPTH_MODE_NFOV_2X2BINNED
 		print(device_config)
 
 		# Start cameras using modified configuration
@@ -56,13 +66,12 @@ class k4aBodyTracker():
 		
 		# display
 		self.imageNow = None
-		self.clipNow = np.zeros((self.max_person, self.max_frame, self.max_joint, self.channels))
+		self._skeNow = [np.zeros((self.max_person, self.max_joint, self.channels)) for _ in range(self.max_frame)]
 		self.skeletonNow = np.zeros((self.max_person, self.max_joint, self.channels))
+		self._clipNow = [np.zeros((self.H, self.W)) for _ in range(self.max_frame)]
+		self.skeNow = self.clipNow = None
 		# turn-on the worker thread
 		threading.Thread(target=self.next_frame, daemon=True).start()
-
-	def next(self):
-		return None
 
 	# def next_clip(self):
 	# 	skeleton = np.zeros((self.max_person, self.max_frame, self.max_joint, self.max_channel), dtype=np.float32)
@@ -78,11 +87,35 @@ class k4aBodyTracker():
 	# 					skeleton[person,frame,joint,:] = np.array(joint_info[:self.max_channel], dtype=np.float32)
 	# 	return skeleton[:,:frame_num,:,:], frame_num
 
-	def next_clip(self):
+	# def load_depth(path, args, vid_len=24):
+	# 	img_list = os.listdir(path)
+	# 	num_frames = len(img_list)
+	# 	width = 224
+	# 	height = 224
+	# 	# slope = 1600.0
+	# 	# dim = (width, height)
+	# 	# Init the numpy array
+	# 	taken = np.linspace(0, num_frames, vid_len).astype(int)
+
+	# 	np_idx = 0
+	# 	for fr_idx in range(num_frames):
+	# 		if fr_idx in taken: # 24 frames
+	# 			img_path = os.path.join(path, img_list[fr_idx])
+	# 			img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH) # 16bit
+	# 			if not img is None: # skip empty frame
+	# 				img = cv2.resize(img, (224, 224)) # 310*256
+	# 				# video[np_idx, :, :] = np.array(img, dtype=np.float32) / slope
+	# 				video[np_idx, :, :] = np.array(img, dtype=np.float32)
+	# 			np_idx += 1
+	# 	# print (video[0])
+	# 	return video
+
+	def next_skeleton(self):
 		self.inputs = 'JVB'
-		self.T = 96
+		self.T = self.winLen
 		self.conn = connect_joint = np.array([2,2,21,3,21,5,6,7,21,9,10,11,1,13,14,15,1,17,18,19,2,23,8,25,12]) - 1
-		clip = self.clipNow.transpose(3, 1, 2, 0) # channels, max_frame, 25, max_person
+		# M, max_frame, V, C -> C, max_frame, V, M
+		clip = self.skeNow.transpose(3, 1, 2, 0) # channels, max_frame, 25, max_person
 		# (C, max_frame, V, M) -> (I, C*2, T, V, M)
 		joint, velocity, bone = self.multi_input(clip[:,:self.T,:,:])
 		data_new = []
@@ -95,6 +128,53 @@ class k4aBodyTracker():
 		data_new = np.stack(data_new, axis=0)
 
 		return data_new
+	
+	def depth_transform(self, np_clip):
+		####### depth ######
+		p_min = 500.
+		p_max = 4500.
+		np_clip[(np_clip < p_min)] = 0.0
+		np_clip[(np_clip > p_max)] = 0.0
+		np_clip -= 2500.
+		np_clip /= 2000.
+		# repeat to BGR to fit pretrained resnet parameters
+		np_clip = np.repeat(np_clip[:, :, :, np.newaxis], 3, axis=3) # 24, 310, 256, 3
+
+		return np_clip
+
+	def next_clip(self):
+		if self.clipNow is not None:
+			video = self.depth_transform(self.clipNow)
+			# print (video.shape) # (bs, 224, 224, 3)
+			video = video.transpose(0, 3, 1, 2) # (bs, 3, 224, 224)
+			video = self.NormalizeLen(video, self.vid_len)
+			video = self.NumToTensor(video)
+			video = self.ToPILImage(video)
+			video = self.SpaCenterCrop(video)
+			video = self.ToTensor(video)
+			return video
+		else:
+			return None
+
+	def NormalizeLen(self, vid, vid_len=8):
+		if vid.shape[0] != 1:
+			num_frames = len(vid)
+			indices = np.linspace(0, num_frames - 1, vid_len).astype(int)
+			vid = vid[indices, :, :]
+		return vid
+
+	def NumToTensor(self, vid):
+		# return torch.from_numpy(vid.astype(np.float32)).unsqueeze(1).transpose(1, 4).squeeze()
+		return torch.from_numpy(vid.astype(np.float32))
+
+	def SpaCenterCrop(self, vid, vid_dim=(224, 224)):
+		return [transforms.CenterCrop(vid_dim)(x) for x in vid]
+
+	def ToPILImage(self, vid):
+		return [transforms.ToPILImage()(x) for x in vid]
+
+	def ToTensor(self, vid):
+		return torch.stack([transforms.ToTensor()(x) for x in vid])
 
 	def multi_input(self, data):
 		C, T, V, M = data.shape
@@ -129,7 +209,6 @@ class k4aBodyTracker():
 			# Get the depth image from the capture
 			depth_image_handle = self.pyK4A.capture_get_depth_image()
 
-
 			# Check the image has been read correctly
 			if depth_image_handle:
 
@@ -138,31 +217,46 @@ class k4aBodyTracker():
 
 				# Read and convert the image data to numpy array:
 				depth_image = self.pyK4A.image_convert_to_numpy(depth_image_handle)
-				depth_color_image = cv2.convertScaleAbs (depth_image, alpha=0.05)  #alpha is fitted by visual comparison with Azure k4aviewer results 
+				depth_color_image = cv2.convertScaleAbs(depth_image, alpha=0.05)  #alpha is fitted by visual comparison with Azure k4aviewer results 
 				depth_color_image = cv2.cvtColor(depth_color_image, cv2.COLOR_GRAY2RGB) 
 
 				# Get body segmentation image
 				body_image_color = self.pyK4A.bodyTracker_get_body_segmentation()
 
 				combined_image = cv2.addWeighted(depth_color_image, 0.8, body_image_color, 0.2, 0)
+				
+				# update single image and depth
+				self.imageNow = combined_image
+				self.depthNow = depth_image
 
 				# Draw the skeleton
-				for body in self.pyK4A.body_tracker.bodiesNow:
+				bodies = self.pyK4A.body_tracker.bodiesNow
+				for idx, body in enumerate(bodies):
 					skeleton2D = self.pyK4A.bodyTracker_project_skeleton(body.skeleton)
 					combined_image = self.pyK4A.body_tracker.draw2DSkeleton(skeleton2D, body.id, combined_image)
 					# self.pyK4A.body_tracker.printBodyPosition(body)
 					# print (skeleton2D.shape)
 					# put skeleton in self.skeletonNow
 					# print (self.pyK4A.body_tracker.get3DSkeleton(body))
-					self.skeletonNow[body.id - 1, :, :] = self.pyK4A.body_tracker.get3DSkeleton(body) # (25, 3)
-					if body.id > self.max_person:
+					# print (idx, body.id)
+					if idx >= self.max_person:
 						break
+					self.skeletonNow[idx, :, :] = self.pyK4A.body_tracker.get3DSkeleton(body) # (25, 3)
 
+				# update self.skeNow
+				# if len(bodies) > 0:
 				for i in range(self.max_frame - 1):
-					self.clipNow[:, i, :, :] = self.clipNow[:, i+1, :, :]
-				self.clipNow[:, -1, :, :] = self.skeletonNow
-				self.imageNow = combined_image
-				# print (self.clipNow[0, 0, :, :])
+					self._skeNow[i] = np.copy(self._skeNow[i+1])
+					self._clipNow[i] = np.copy(self._clipNow[i+1])
+				self._skeNow[-1] = np.copy(self.skeletonNow)
+				self._clipNow[-1] = np.array(cv2.resize(depth_image, (self.W, self.H))).astype(np.float32) # 224 * 224
+				self.skeNow = np.stack(self._skeNow, 0).transpose(1, 0, 2, 3) # [4, 64, :, :]
+				self.clipNow = np.stack(self._clipNow, 0) # [64, 224, 224]
+				# else:
+					# print (datetime.datetime.now().__str__() + '                           ', 'No skeleton detected')
+				
+				# update self.clipNow
+				# print (self.skeNow[0, 0, :, :])
 				# # Overlay body segmentation on depth image
 				# cv2.imshow('Segmented Depth Image', combined_image)
 				# k = cv2.waitKey(1)
@@ -182,9 +276,9 @@ class k4aBodyTracker():
 			# elif k == ord('q'):
 			# 	cv2.imwrite('outputImage.jpg',combined_image)
 
-			# update self.clipNow
+			# update self.skeNow
 			for j in range(self.max_frame):
-				self.clipNow[:, j, :, :] = self.skeletonNow.copy()
+				self.skeNow[:, j, :, :] = self.skeletonNow.copy()
 		pyK4A.device_stop_cameras()
 		pyK4A.device_close()
 

@@ -29,6 +29,7 @@ class NTU_Feeder(Dataset):
 
     def __getitem__(self, idx):
         data = np.array(self.data[idx])
+        # print (data.shape) # (3, 300, 25, 2)
         label = self.label[idx]
         name = self.name[idx]
         # seq_len = self.seq_len[idx]
@@ -44,6 +45,7 @@ class NTU_Feeder(Dataset):
             data_new.append(bone)
         data_new = np.stack(data_new, axis=0)
 
+        # print (data_new.shape) # (3, 6, 288, 25, 2)
         return data_new, label, name
 
     def multi_input(self, data):

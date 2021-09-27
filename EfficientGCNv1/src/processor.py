@@ -2,6 +2,8 @@ import logging, torch, numpy as np
 import torch.nn.functional as F
 from tqdm import tqdm
 from time import time
+import datetime
+
 import threading
 
 import cv2
@@ -9,6 +11,128 @@ import cv2
 from . import utils as U
 from .initializer import Initializer
 
+idx2label = {
+    1: 'drink water',   
+    2: 'eat meal',   
+    3: 'brush teeth',  
+    4: 'brush hair',  
+    5: 'drop',
+    6: 'pick up', 
+    7: 'throw ',   
+    8: 'sit down ',   
+    9: 'stand up ',   
+    10: 'clapping    ',
+    11: 'reading  ',  
+    12: 'writing   ', 
+    13: 'tear up paper   ', 
+    14: 'put on jacket    ',
+    15: 'take off jacket   ', 
+    16: 'put on a shoe   ', 
+    17: 'take off a shoe    ',
+    18: 'put on glasses ',   
+    19: 'take off glasses    ',
+    20: 'put on a hat/cap ',   
+    21: 'take off a hat/cap    ',
+    22: 'cheer up   ', 
+    23: 'hand waving   ', 
+    24: 'kicking something   ', 
+    25: 'reach into pocket  ',  
+    26: 'hopping   ', 
+    27: 'jump up ',   
+    28: 'phone call',    
+    29: 'play with phone/tablet',    
+    30: 'type on a keyboard  ',  
+    31: 'point to something',    
+    32: 'taking a selfie    ',
+    33: 'check time (from watch)  ',  
+    34: 'rub two hands',    
+    35: 'nod head/bow  ',  
+    36: 'shake head    ',
+    37: 'wipe face  ',  
+    38: 'salute  ',  
+    39: 'put palms together',    
+    40: 'cross hands in front   ', 
+    61: 'put on headphone ',   
+    62: 'take off headphone   ', 
+    63: 'shoot at basket  ',  
+    64: 'bounce ball   ', 
+    65: 'tennis bat swing  ',  
+    66: 'juggle table tennis ball   ', 
+    67: 'hush',
+    68: 'flick hair'   ,
+    69: 'thumb up    ',
+    70: 'thumb down    ',
+    71: 'make OK sign ',   
+    72: 'make victory sign   ', 
+    73: 'staple book',    
+    74: 'counting money    ',
+    75: 'cutting nails    ',
+    76: 'cutting paper',    
+    77: 'snap fingers ',   
+    78: 'open bottle ',   
+    79: 'sniff/smell ',   
+    80: 'squat down   ', 
+    81: 'toss a coin    ',
+    82: 'fold paper  ',  
+    83: 'ball up paper ',   
+    84: 'play magic cube ',   
+    85: 'apply cream on face',    
+    86: 'apply cream on hand',    
+    87: 'put on bag    ',
+    88: 'take off bag    ',
+    89: 'put object into bag',    
+    90: 'take object out of bag',    
+    91: 'open a box   ', 
+    92: 'move heavy objects',    
+    93: 'shake fist   ', 
+    94: 'throw up cap/hat',    
+    95: 'capitulate   ', 
+    96: 'cross arms   ', 
+    97: 'arm circles   ', 
+    98: 'arm swings   ', 
+    99: 'run on the spot',    
+    100: 'butt kicks   ', 
+    101: 'cross toe touch',    
+    102: 'side kick   ', 
+    41: 'sneeze/cough',
+    42: 'staggering',
+    43: 'falling down',
+    44: 'headache',
+    45: 'chest pain',
+    46: 'back pain',
+    47: 'neck pain',
+    48: 'nausea/vomiting',
+    49: 'fan self',
+    103: 'yawn',
+    104: 'stretch oneself',
+    105: 'blow nose',
+    50: 'punch/slap',
+    51: 'kicking',
+    52: 'pushing',
+    53: 'pat on back',
+    54: 'point finger',
+    55: 'hugging',
+    56: 'giving object',
+    57: 'touch pocket',
+    58: 'shaking hands',
+    59: 'walking towards',
+    60: 'walking apart',
+    106: 'hit with object',
+    107: 'wield knife',
+    108: 'knock over',
+    109: 'grab stuff',
+    110: 'shoot with gun',
+    111: 'step on foot',
+    112: 'high-five',
+    113: 'cheers and drink',
+    114: 'carry object',
+    115: 'take a photo',
+    116: 'follow',
+    117: 'whisper',
+    118: 'exchange things',
+    119: 'support somebody',
+    120: 'rock-paper-scissors',
+}
 
 class Processor(Initializer):
 
@@ -20,11 +144,11 @@ class Processor(Initializer):
         for num, (x, y, _) in enumerate(train_iter):
             self.optimizer.zero_grad()
 
-            print (x.shape)
             # Using GPU
             x = x.float().to(self.device)
             y = y.long().to(self.device)
 
+            print (x.size())
             # Calculating Output
             out, _ = self.model(x)
 
@@ -76,6 +200,7 @@ class Processor(Initializer):
                 y = y.long().to(self.device)
                 
                 print (x.size())
+                # print (x[0, 0, 0, 0, :, 0])
                 # Calculating Output
                 out, _ = self.model(x)
                 # Getting Loss
@@ -134,35 +259,47 @@ class Processor(Initializer):
                 cv2.imwrite('outputImage.jpg', self.bodyTracker.imageNow)
 
     def demo_batch(self):
-        interest = torch.tensor([[23], [26]])
-        y_onehot = torch.zeros([2, 120])
-        y_onehot.scatter_(1, interest, 1)
-        y_onehot = torch.sum(y_onehot, dim=0, keepdim=True) # [1, 120]
-        y_onehot = y_onehot.cuda()
+        # interest = torch.tensor([[22], [26]])
+        # y_onehot = torch.zeros([2, 120])
+        # y_onehot.scatter_(1, interest, 1)
+        # y_onehot = torch.sum(y_onehot, dim=0, keepdim=True) # [1, 120]
+        # y_onehot = y_onehot.cuda()
         # print (y_onehot)
-        # idx2label = {24: 'hand waving', 27: 'jumping up'}
-        idx2label = {0: 'hand waving', 1: 'jumping up'}
-        out_i = torch.zeros([1, 2])
+        # idx2label = {23: 'hand waving', 27: 'jumping up'}
+        # idx2label = {0: 'hand waving', 1: 'jumping up'}
+        # out_i = torch.zeros([1, 2])
+        self.T = 288
         while True:
+            x = np.zeros([3, 6, self.T, 25, 2]).astype(np.float32)
             with torch.no_grad():
-                x = self.bodyTracker.next_clip()
-                # print (x.shape)
-                x = torch.Tensor(x).float()
-                x = x.unsqueeze(0).to(self.device)
-                # Calculating Output
-                out, _ = self.model(x)
-                out = out * y_onehot
-                # mapping
-                out_i[:, 0] = out[:, 23]
-                out_i[:, 1] = out[:, 26]
-                out_i = out_i.data.cpu()
-                out_i = F.softmax(out_i, -1)
-                # out = F.softmax(out, -1)
-                # print (out)
-                prob = torch.max(out_i[0])
-                pred = torch.argmax(out_i[0])
-                # print out result
-                print ('{:.2f}%'.format(prob.numpy() * 1e2), '{:03d}'.format(pred.numpy() + 1), idx2label[int(pred.numpy() + 1)])
+                ske = self.bodyTracker.next_skeleton()
+                if ske is not None:
+                    x[:, :, :32, :, :] = np.copy(ske)
+                    x = torch.Tensor(x).float()
+                    x = x.unsqueeze(0).to(self.device)
+                    # Calculating Output
+                    # print (x.size())
+                    # print (x[0, 0, 0, 0, :, 0])
+                    out, _ = self.model(x) # [bs, 120]
+                    out = F.softmax(out, -1)
+                    # out = out * y_onehot
+                    # mapping
+                    # out_i[:, 0] = out[:, 22]
+                    # out_i[:, 1] = out[:, 26]
+                    # out_i = out_i.data.cpu()
+                    # out_i = F.softmax(out_i, -1)
+                    # out = F.softmax(out, -1)
+                    # print (out)
+                    
+                    prob = torch.max(out[0]).cpu().numpy()
+                    pred = torch.argmax(out[0]).cpu().numpy()
+                    out = out.cpu().numpy()
+                    ind = np.argpartition(out[0], -5)[-5:]
+                    # print out result
+                    if prob > 0.5:
+                        print (datetime.datetime.now().__str__() + '         ', '{:.2f}%'.format(prob * 1e2), '{:03d}'.format(pred + 1), \
+                            idx2label[int(pred) + 1], [idx2label[ind[i] + 1] for i in range(5)])
+                        # print (out[0].cpu().numpy())
 
     def start(self):
         start_time = time()

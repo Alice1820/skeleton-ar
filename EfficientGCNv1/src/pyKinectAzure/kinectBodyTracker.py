@@ -37,6 +37,10 @@ k4a2v2 = {
 		24: _k4abt.K4ABT_JOINT_THUMB_RIGHT,
 		 }
 
+v22k4a = {
+
+}
+
 class kinectBodyTracker:
 
 	def __init__(self, modulePath, sensor_calibration, modelType):
@@ -116,10 +120,12 @@ class kinectBodyTracker:
 				image, (int(point1[0]), int(point1[1])), (int(point2[0]), int(point2[1])),
 				(255,0,0), 2
 			)
-
+			# print (image.shape)
+			# print ((int(point1[0]), int(point1[1])), (int(point2[0]), int(point2[1])))
 		return image
 	
-	def draw2DSkeletonBlank(self, skeleton2D, bodyId):
+	def draw2DSkeleton_frombody(self, body):
+		blank = np.zeros((height,width,3), np.uint8)
 		color = _k4abt.body_colors
 		for joint in skeleton2D.joints2D:
 			image = cv2.circle(image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
@@ -131,6 +137,21 @@ class kinectBodyTracker:
 				image, (int(point1[0]), int(point1[1])), (int(point2[0]), int(point2[1])),
 				(255,0,0), 2
 			)
+			# print (image.shape)
+			# print ((int(point1[0]), int(point1[1])), (int(point2[0]), int(point2[1])))
+		return image
+
+	def draw2DSkeletonBlank(self, skeleton2D, bodyId):
+		color = _k4abt.body_colors
+		for joint in skeleton2D.joints2D:
+			image = cv2.circle(image, (int(joint.position.v[0]), int(joint.position.v[1])), 3, (255,0,0), 3)
+
+		for segmentId in range(len(_k4abt.K4ABT_SEGMENT_PAIRS)):
+			point1 = skeleton2D.joints2D[_k4abt.K4ABT_SEGMENT_PAIRS[segmentId][0]].position.v
+			point2 = skeleton2D.joints2D[_k4abt.K4ABT_SEGMENT_PAIRS[segmentId][1]].position.v
+			image = cv2.line(
+				image, (int(point1[0]), int(point1[1])), (int(point2[0]), int(point2[1])),
+				(255,0,0), 2
 
 		return image
 

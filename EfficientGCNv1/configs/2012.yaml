@@ -18,7 +18,7 @@ dataset_args:
   ntu:
     train_batch_size: 1
     eval_batch_size: 32
-    num_frame: 96
+    num_frame: 288
     inputs: JVB
     transform: False
     root_folder: /mnt/hdd/NTU_skeleton/npy_dataset

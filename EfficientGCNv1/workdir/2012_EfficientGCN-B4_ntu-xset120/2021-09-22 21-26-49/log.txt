@@ -1,0 +1,17 @@
+[ 2021-09-22 21:26:49,224 ] Saving folder path: ./workdir/2012_EfficientGCN-B4_ntu-xset120/2021-09-22 21-26-49
+[ 2021-09-22 21:26:49,224 ] 
+[ 2021-09-22 21:26:49,224 ] Starting preparing ...
+[ 2021-09-22 21:26:49,226 ] Saving model name: 2012_EfficientGCN-B4_ntu-xset120
+[ 2021-09-22 21:26:49,250 ] GPU-0 used: 1435.5625MB
+[ 2021-09-22 21:26:49,286 ] Dataset: ntu-xset120
+[ 2021-09-22 21:26:49,286 ] Batch size: train-1, eval-32
+[ 2021-09-22 21:26:49,286 ] Data shape (branch, channel, frame, joint, person): [3, 6, 288, 25, 2]
+[ 2021-09-22 21:26:49,286 ] Number of action classes: 120
+[ 2021-09-22 21:26:49,330 ] Model: EfficientGCN-B4 {'stem_channel': 64, 'block_args': [[48, 1, 0.5], [24, 1, 0.5], [64, 2, 1], [128, 2, 1]], 'fusion_stage': 2, 'act_type': 'swish', 'att_type': 'stja', 'layer_type': 'Sep', 'drop_prob': 0.25, 'kernel_size': [5, 2], 'scale_args': [1.2, 1.35], 'expand_ratio': 2, 'reduct_ratio': 4, 'bias': True, 'edge': True}
+[ 2021-09-22 21:26:49,861 ] Model profile: 15.87G FLOPs and 2.05M Parameters
+[ 2021-09-22 21:26:51,491 ] Optimizer: SGD {'lr': 0.1, 'momentum': 0.9, 'nesterov': True, 'weight_decay': 0.0001}
+[ 2021-09-22 21:26:51,491 ] LR_Scheduler: cosine {'max_epoch': 70, 'warm_up': 10}
+[ 2021-09-22 21:26:51,491 ] Loss function: CrossEntropyLoss
+[ 2021-09-22 21:26:51,491 ] Successful!
+[ 2021-09-22 21:26:51,491 ] 
+[ 2021-09-22 21:26:51,491 ] Starting training ...

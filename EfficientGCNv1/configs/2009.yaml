@@ -21,9 +21,9 @@ dataset_args:
     num_frame: 288
     inputs: JVB
     transform: False
-    root_folder: /data/yifan.song/dataset/NTU_skeleton/npy_dataset
-    ntu60_path: /data/yifan.song/dataset/NTU_skeleton/nturgbd_skeletons_s001_to_s017
-    ntu120_path: /data/yifan.song/dataset/NTU_skeleton/nturgbd_skeletons_s018_to_s032
+    root_folder: /mnt/hdd/NTU_skeleton/npy_dataset_2009
+    ntu60_path: /mnt/hdd/NTU_RGBD_60/nturgbd_skeleton/nturgbd_skeletons_s001_to_s017
+    ntu120_path: /mnt/hdd/NTU_RGBD_120/nturgbd_skeleton/nturgbd_skeletons_s018_to_s032
 
 # Model
 model_type: EfficientGCN-B4
